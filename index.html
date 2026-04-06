@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banco Continental Paraguay — Partner Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f5f7; --surface: #fff; --surface2: #f0f0f5;
+    --border: #d2d2d7; --text: #1d1d1f; --muted: #6e6e73;
+    --accent: #0071e3; --accent-bg: #e8f0fd;
+    --green: #28a745; --green-bg: #d4edda;
+    --orange: #fd7e14; --orange-bg: #fff3e0;
+    --red: #dc3545; --red-bg: #fde8ea;
+    --yellow: #f59e0b; --yellow-bg: #fef3c7;
+    --purple: #8b5cf6; --purple-bg: #ede9fe;
+    --radius: 12px; --radius-sm: 8px;
+    --shadow: 0 2px 12px rgba(0,0,0,.08);
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  /* ── HEADER ── */
+  .hdr {
+    background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+    color: #fff; padding: 28px 40px 24px;
+  }
+  .hdr-top { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+  .hdr-left { display: flex; align-items: center; gap: 16px; }
+  .partner-flag { font-size: 2.8rem; line-height: 1; }
+  .partner-name { font-size: 1.6rem; font-weight: 700; letter-spacing: -.02em; }
+  .partner-sub  { color: rgba(255,255,255,.5); font-size: .85rem; margin-top: 3px; }
+  .hdr-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .hbadge {
+    padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 600;
+    border: 1px solid rgba(255,255,255,.2); color: #fff;
+  }
+  .hbadge.green  { background: rgba(48,209,88,.2);  border-color: rgba(48,209,88,.4); }
+  .hbadge.orange { background: rgba(255,159,10,.2); border-color: rgba(255,159,10,.4); }
+  .hbadge.blue   { background: rgba(10,132,255,.2); border-color: rgba(10,132,255,.4); }
+  .hbadge.purple { background: rgba(191,90,242,.2); border-color: rgba(191,90,242,.4); }
+  .hdr-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hstat {
+    background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 10px; padding: 10px 18px; text-align: center; min-width: 80px;
+  }
+  .hstat-val { font-size: 1.5rem; font-weight: 700; }
+  .hstat-lbl { font-size: .7rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+  .hstat-val.red    { color: #ff453a; }
+  .hstat-val.orange { color: #ff9f0a; }
+  .hstat-val.green  { color: #30d158; }
+
+  /* ── TABS ── */
+  .tabs-nav {
+    display: flex; gap: 4px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 40px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 6px rgba(0,0,0,.06);
+  }
+  .tab-btn {
+    padding: 14px 18px; border: none; background: none; cursor: pointer;
+    font-family: var(--font); font-size: .88rem; font-weight: 500;
+    color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: color .15s, border-color .15s; white-space: nowrap;
+  }
+  .tab-btn:hover  { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+  /* ── MAIN ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 28px 40px 80px; }
+  .tab-panel { display: none; animation: fadeIn .2s; }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+  /* ── SECTION TITLE ── */
+  .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; letter-spacing: -.02em; }
+
+  /* ── OVERVIEW GRID ── */
+  .ov-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+  .ov-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .ov-card.full { grid-column: 1 / -1; }
+  .ov-card.half { grid-column: span 2; }
+  .ov-label { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .ov-value { font-size: .95rem; font-weight: 600; }
+  .ov-value.big { font-size: 1.6rem; font-weight: 700; }
+
+  /* ── STATUS BAR ── */
+  .status-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+  .status-item {
+    flex: 1; min-width: 140px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px;
+  }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.green  { background: var(--green); }
+  .status-dot.orange { background: var(--orange); }
+  .status-dot.red    { background: var(--red); }
+  .status-dot.yellow { background: var(--yellow); }
+  .status-dot.blue   { background: var(--accent); }
+  .status-label { font-size: .8rem; font-weight: 600; }
+  .status-sub   { font-size: .72rem; color: var(--muted); margin-top: 1px; }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content:''; position:absolute; left:7px; top:0; bottom:0; width:2px; background:var(--border); }
+  .tl-item { position: relative; margin-bottom: 18px; }
+  .tl-dot {
+    position: absolute; left: -20px; top: 4px;
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 2px solid var(--surface); flex-shrink: 0;
+  }
+  .tl-dot.green  { background: var(--green); }
+  .tl-dot.orange { background: var(--orange); }
+  .tl-dot.red    { background: var(--red); }
+  .tl-dot.blue   { background: var(--accent); }
+  .tl-dot.gray   { background: var(--muted); }
+  .tl-date  { font-size: .72rem; color: var(--muted); margin-bottom: 2px; }
+  .tl-title { font-size: .88rem; font-weight: 600; }
+  .tl-desc  { font-size: .82rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── CONTACT CARDS ── */
+  .contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+  .contact-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 16px 18px; box-shadow: var(--shadow);
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%; color: #fff;
+    font-size: .85rem; font-weight: 700; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0;
+  }
+  .contact-name  { font-weight: 600; font-size: .9rem; }
+  .contact-title { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+  .contact-email { font-size: .75rem; color: var(--accent); margin-top: 4px; }
+  .contact-tag   {
+    display: inline-block; margin-top: 6px; padding: 2px 8px;
+    border-radius: 10px; font-size: .68rem; font-weight: 600;
+    background: var(--accent-bg); color: var(--accent);
+  }
+
+  /* ── ACTION ITEMS ── */
+  .action-list { display: flex; flex-direction: column; gap: 10px; }
+  .action-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 18px; box-shadow: var(--shadow);
+  }
+  .action-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .action-title { font-weight: 600; font-size: .9rem; }
+  .action-desc  { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+  .action-meta  { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .tag {
+    display: inline-block; padding: 2px 9px; border-radius: 10px;
+    font-size: .72rem; font-weight: 600;
+  }
+  .tag-green  { background: var(--green-bg);  color: var(--green); }
+  .tag-orange { background: var(--orange-bg); color: var(--orange); }
+  .tag-red    { background: var(--red-bg);    color: var(--red); }
+  .tag-blue   { background: var(--accent-bg); color: var(--accent); }
+  .tag-purple { background: var(--purple-bg); color: var(--purple); }
+  .tag-yellow { background: var(--yellow-bg); color: var(--yellow); }
+
+  /* ── EMAIL THREADS ── */
+  .email-list { display: flex; flex-direction: column; gap: 8px; }
+  .email-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 16px; box-shadow: var(--shadow);
+  }
+  .email-item.unread { border-left: 3px solid var(--accent); }
+  .email-cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .email-subject { font-size: .88rem; font-weight: 500; flex: 1; }
+  .email-item.unread .email-subject { font-weight: 700; }
+  .email-date   { font-size: .75rem; color: var(--muted); white-space: nowrap; }
+
+  /* ── MEETINGS ── */
+  .meetings-list { display: flex; flex-direction: column; gap: 10px; }
+  .meeting-item {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 18px; box-shadow: var(--shadow);
+  }
+  .meeting-item.upcoming { border-left: 3px solid var(--accent); }
+  .meeting-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .meeting-title { font-weight: 600; font-size: .9rem; }
+  .meeting-meta  { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+  .meeting-date  { font-size: .78rem; font-weight: 600; white-space: nowrap; }
+  .meeting-date.upcoming { color: var(--accent); }
+
+  /* ── COMPLIANCE ── */
+  .compliance-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .comp-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 16px 18px; box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .comp-icon  { font-size: 1.6rem; margin-bottom: 6px; }
+  .comp-title { font-size: .82rem; font-weight: 600; }
+  .comp-status { font-size: .75rem; font-weight: 700; margin-top: 4px; }
+  .comp-status.green  { color: var(--green); }
+  .comp-status.orange { color: var(--orange); }
+  .comp-status.red    { color: var(--red); }
+  .comp-date  { font-size: .7rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── NOTES ── */
+  .notes-area {
+    width: 100%; min-height: 200px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: 14px 16px; font-size: .9rem; font-family: var(--font);
+    background: var(--surface); color: var(--text); outline: none; resize: vertical;
+    transition: border .15s;
+  }
+  .notes-area:focus { border-color: var(--accent); }
+  .notes-saved { font-size: .78rem; color: var(--green); margin-top: 6px; display: none; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  @media (max-width: 768px) {
+    .hdr, .main { padding-left: 20px; padding-right: 20px; }
+    .tabs-nav { padding: 0 20px; }
+    .ov-grid { grid-template-columns: 1fr 1fr; }
+    .ov-card.half { grid-column: span 2; }
+  }
+  @media (max-width: 500px) {
+    .ov-grid { grid-template-columns: 1fr; }
+    .ov-card.half { grid-column: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="hdr">
+  <div class="hdr-top">
+    <div class="hdr-left">
+      <div class="partner-flag">🇵🇾</div>
+      <div>
+        <div class="partner-name">Banco Continental Paraguay</div>
+        <div class="partner-sub">Apple Pay Partner · Paraguay · Issuer</div>
+        <div class="hdr-badges">
+          <span class="hbadge blue">Tier 3</span>
+          <span class="hbadge green">Active</span>
+          <span class="hbadge purple">Issuer</span>
+        </div>
+      </div>
+    </div>
+    <div class="hdr-stats">
+      <div class="hstat">
+        <div class="hstat-val">12</div>
+        <div class="hstat-lbl">Emails</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-val red">2</div>
+        <div class="hstat-lbl">Open Items</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-val orange">1</div>
+        <div class="hstat-lbl">At Risk</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-val green">3</div>
+        <div class="hstat-lbl">Meetings</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── TABS ── -->
+<nav class="tabs-nav">
+  <button class="tab-btn active" data-tab="overview">Overview</button>
+  <button class="tab-btn" data-tab="actions">Action Items</button>
+  <button class="tab-btn" data-tab="emails">Emails</button>
+  <button class="tab-btn" data-tab="meetings">Meetings</button>
+  <button class="tab-btn" data-tab="compliance">Compliance</button>
+  <button class="tab-btn" data-tab="contacts">Contacts</button>
+  <button class="tab-btn" data-tab="notes">My Notes</button>
+</nav>
+
+<main class="main">
+
+  <!-- ── OVERVIEW ── -->
+  <div id="tab-overview" class="tab-panel active">
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-dot green"></div>
+        <div><div class="status-label">Onboarding</div><div class="status-sub">Completed — Live since 2023</div></div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot orange"></div>
+        <div><div class="status-label">IFR Compliance</div><div class="status-sub">1 open waiver request</div></div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot green"></div>
+        <div><div class="status-label">Billing</div><div class="status-sub">Up to date · Q1 invoiced</div></div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot green"></div>
+        <div><div class="status-label">Certification</div><div class="status-sub">Valid · Expires Dec 2026</div></div>
+      </div>
+      <div class="status-item">
+        <div class="status-dot red"></div>
+        <div><div class="status-label">Feature Adoption</div><div class="status-sub">Tap to Add not yet enabled</div></div>
+      </div>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="ov-grid">
+      <div class="ov-card">
+        <div class="ov-label">Country</div>
+        <div class="ov-value">🇵🇾 Paraguay</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Partner Type</div>
+        <div class="ov-value">Issuer</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Tier</div>
+        <div class="ov-value">Tier 3</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Live Since</div>
+        <div class="ov-value">March 2023</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Network</div>
+        <div class="ov-value">Mastercard · Visa</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Account #</div>
+        <div class="ov-value">1803421</div>
+      </div>
+      <div class="ov-card half">
+        <div class="ov-label">DRI</div>
+        <div class="ov-value">Marcela Prado — LatAm Issuer Onboarding</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Last Contact</div>
+        <div class="ov-value">Mar 28, 2026</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Recent Activity -->
+    <div class="section-title">Recent Activity</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot blue"></div>
+        <div class="tl-date">Apr 2, 2026</div>
+        <div class="tl-title">Billing statement sent — Q1 2026</div>
+        <div class="tl-desc">Invoice #1803421-Q1 delivered. No response yet.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot orange"></div>
+        <div class="tl-date">Mar 28, 2026</div>
+        <div class="tl-title">IFR Waiver Request — Multi-Device Provisioning</div>
+        <div class="tl-desc">Partner submitted waiver for Multi-Device Provisioning. Under review.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot green"></div>
+        <div class="tl-date">Mar 15, 2026</div>
+        <div class="tl-title">Bi-weekly sync completed</div>
+        <div class="tl-desc">Discussed feature adoption roadmap and Tap to Add timeline.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot green"></div>
+        <div class="tl-date">Mar 1, 2026</div>
+        <div class="tl-title">Certification renewed</div>
+        <div class="tl-desc">FIME certification renewed. Valid through December 2026.</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot gray"></div>
+        <div class="tl-date">Feb 10, 2026</div>
+        <div class="tl-title">Apple Pay reporting submitted</div>
+        <div class="tl-desc">Q4 2025 reporting received on time. No issues flagged.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ACTION ITEMS ── -->
+  <div id="tab-actions" class="tab-panel">
+    <div class="section-title">Open Action Items</div>
+    <div class="action-list">
+
+      <div class="action-item">
+        <div class="action-icon">⚠️</div>
+        <div style="flex:1">
+          <div class="action-title">IFR Waiver — Multi-Device Provisioning</div>
+          <div class="action-desc">Partner submitted a waiver request on Mar 28. Needs review and response before Apr 15.</div>
+          <div class="action-meta">
+            <span class="tag tag-orange">Pending Review</span>
+            <span class="tag tag-red">Due Apr 15</span>
+            <span class="tag tag-blue">Compliance</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-icon">📲</div>
+        <div style="flex:1">
+          <div class="action-title">Tap to Add — Enable &amp; Adoption Plan</div>
+          <div class="action-desc">Partner has not yet enabled Tap to Add. Agreed to discuss timeline on next call. Share enablement guide.</div>
+          <div class="action-meta">
+            <span class="tag tag-red">Not Started</span>
+            <span class="tag tag-purple">Feature Adoption</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-icon">💰</div>
+        <div style="flex:1">
+          <div class="action-title">Q1 2026 Invoice — Awaiting Confirmation</div>
+          <div class="action-desc">Invoice sent Apr 2. No acknowledgment received yet. Follow up if no response by Apr 10.</div>
+          <div class="action-meta">
+            <span class="tag tag-yellow">Awaiting Response</span>
+            <span class="tag tag-blue">Billing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-item">
+        <div class="action-icon">📋</div>
+        <div style="flex:1">
+          <div class="action-title">Q2 2026 Reporting — Remind in May</div>
+          <div class="action-desc">Next reporting window opens May 1. Set reminder to send template to partner contact in late April.</div>
+          <div class="action-meta">
+            <span class="tag tag-green">Upcoming</span>
+            <span class="tag tag-blue">Reporting</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">Completed ✓</div>
+    <div class="action-list">
+      <div class="action-item" style="opacity:.6">
+        <div class="action-icon">✅</div>
+        <div>
+          <div class="action-title">FIME Certification Renewal</div>
+          <div class="action-desc">Completed Mar 1, 2026. Valid through Dec 2026.</div>
+        </div>
+      </div>
+      <div class="action-item" style="opacity:.6">
+        <div class="action-icon">✅</div>
+        <div>
+          <div class="action-title">Q4 2025 Reporting</div>
+          <div class="action-desc">Received on time Feb 10, 2026. No issues.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EMAILS ── -->
+  <div id="tab-emails" class="tab-panel">
+    <div class="section-title">Recent Email Threads</div>
+
+    <div style="margin-bottom:12px">
+      <span style="font-size:.8rem;color:var(--muted)">Color by category: </span>
+      <span style="display:inline-flex;align-items:center;gap:4px;font-size:.78rem;margin-right:10px"><span style="width:8px;height:8px;border-radius:50%;background:#5856D6;display:inline-block"></span>Feature Adoption</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;font-size:.78rem;margin-right:10px"><span style="width:8px;height:8px;border-radius:50%;background:#FF9500;display:inline-block"></span>Compliance</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;font-size:.78rem;margin-right:10px"><span style="width:8px;height:8px;border-radius:50%;background:#34C759;display:inline-block"></span>Billing</span>
+      <span style="display:inline-flex;align-items:center;gap:4px;font-size:.78rem"><span style="width:8px;height:8px;border-radius:50%;background:#8E8E93;display:inline-block"></span>Other</span>
+    </div>
+
+    <div class="email-list">
+      <div class="email-item unread">
+        <div class="email-cat-dot" style="background:#34C759"></div>
+        <div class="email-subject">Invoice #1803421-Q1 2026 — Apple Pay Fees</div>
+        <div class="email-date">Apr 2, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#FF9500"></div>
+        <div class="email-subject">IFR Waiver Request — Multi-Device Provisioning</div>
+        <div class="email-date">Mar 28, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#8E8E93"></div>
+        <div class="email-subject">Bi-Weekly Sync — Mar 15 Notes &amp; Follow-ups</div>
+        <div class="email-date">Mar 15, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#5856D6"></div>
+        <div class="email-subject">[EXTERNAL] RE: Tap to Add — Estatus e Cronograma</div>
+        <div class="email-date">Mar 12, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#34C759"></div>
+        <div class="email-subject">Statement of Account: 0001803421 — Banco Continental</div>
+        <div class="email-date">Mar 10, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#8E8E93"></div>
+        <div class="email-subject">Apple Pay Paraguay — Q4 2025 Metrics Review</div>
+        <div class="email-date">Feb 28, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#34C759"></div>
+        <div class="email-subject">Q4 2025 Reporting Template — Action Required</div>
+        <div class="email-date">Feb 10, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#FF9500"></div>
+        <div class="email-subject">FIME Certification Renewal — Banco Continental</div>
+        <div class="email-date">Feb 5, 2026</div>
+      </div>
+      <div class="email-item">
+        <div class="email-cat-dot" style="background:#5856D6"></div>
+        <div class="email-subject">Apple Pay Feature Adoption — 2026 Priorities</div>
+        <div class="email-date">Jan 20, 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MEETINGS ── -->
+  <div id="tab-meetings" class="tab-panel">
+    <div class="section-title">Upcoming</div>
+    <div class="meetings-list" style="margin-bottom:24px">
+
+      <div class="meeting-item upcoming">
+        <div class="meeting-icon">📅</div>
+        <div style="flex:1">
+          <div class="meeting-title">Banco Continental — Bi-Weekly Sync</div>
+          <div class="meeting-meta">Attendees: Marcela Prado · Carlos Mendoza (BCont) · Sofia Rios (BCont)</div>
+          <div class="meeting-meta">Topics: Tap to Add timeline · IFR waiver status · Q1 invoice</div>
+        </div>
+        <div class="meeting-date upcoming">Apr 10, 2026<br><span style="font-size:.7rem;font-weight:400">10:00 AM CDT</span></div>
+      </div>
+
+      <div class="meeting-item upcoming">
+        <div class="meeting-icon">📅</div>
+        <div style="flex:1">
+          <div class="meeting-title">LatAm Issuer Onboarding — Weekly Team Sync</div>
+          <div class="meeting-meta">Internal · Apple team only</div>
+        </div>
+        <div class="meeting-date upcoming">Apr 7, 2026<br><span style="font-size:.7rem;font-weight:400">9:00 AM CDT</span></div>
+      </div>
+
+    </div>
+
+    <div class="section-title">Past Meetings</div>
+    <div class="meetings-list">
+
+      <div class="meeting-item">
+        <div class="meeting-icon">📋</div>
+        <div style="flex:1">
+          <div class="meeting-title">Banco Continental — Bi-Weekly Sync</div>
+          <div class="meeting-meta">Discussed FIME cert renewal · Feature adoption 2026 plan</div>
+        </div>
+        <div class="meeting-date">Mar 15, 2026</div>
+      </div>
+
+      <div class="meeting-item">
+        <div class="meeting-icon">📋</div>
+        <div style="flex:1">
+          <div class="meeting-title">Banco Continental — Q4 2025 Business Review</div>
+          <div class="meeting-meta">Reviewed metrics · Discussed growth opportunities in Paraguay</div>
+        </div>
+        <div class="meeting-date">Feb 20, 2026</div>
+      </div>
+
+      <div class="meeting-item">
+        <div class="meeting-icon">📋</div>
+        <div style="flex:1">
+          <div class="meeting-title">Banco Continental — Bi-Weekly Sync</div>
+          <div class="meeting-meta">Reporting follow-up · NDA renewal discussion</div>
+        </div>
+        <div class="meeting-date">Feb 1, 2026</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── COMPLIANCE ── -->
+  <div id="tab-compliance" class="tab-panel">
+    <div class="section-title">Compliance Status</div>
+    <div class="compliance-grid">
+      <div class="comp-card">
+        <div class="comp-icon">🏅</div>
+        <div class="comp-title">FIME Certification</div>
+        <div class="comp-status green">✓ Valid</div>
+        <div class="comp-date">Expires Dec 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">📄</div>
+        <div class="comp-title">NDA</div>
+        <div class="comp-status green">✓ Signed</div>
+        <div class="comp-date">Renewed Jan 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">📋</div>
+        <div class="comp-title">IFR — Core Requirements</div>
+        <div class="comp-status green">✓ Compliant</div>
+        <div class="comp-date">Last reviewed Feb 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">⚠️</div>
+        <div class="comp-title">IFR — Multi-Device Provisioning</div>
+        <div class="comp-status orange">Waiver Pending</div>
+        <div class="comp-date">Submitted Mar 28, 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">📲</div>
+        <div class="comp-title">Tap to Add</div>
+        <div class="comp-status red">Not Enabled</div>
+        <div class="comp-date">Target: Q2 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">📊</div>
+        <div class="comp-title">Q4 2025 Reporting</div>
+        <div class="comp-status green">✓ Submitted</div>
+        <div class="comp-date">Received Feb 10, 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">💳</div>
+        <div class="comp-title">Fraud Reporting</div>
+        <div class="comp-status green">✓ Current</div>
+        <div class="comp-date">Last filed Jan 2026</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">🔐</div>
+        <div class="comp-title">PCI DSS</div>
+        <div class="comp-status green">✓ Compliant</div>
+        <div class="comp-date">Valid through Sep 2026</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">IFR Waiver — Multi-Device Provisioning</div>
+    <div class="action-item">
+      <div class="action-icon">📝</div>
+      <div>
+        <div class="action-title">Waiver Details</div>
+        <div class="action-desc">Banco Continental Paraguay submitted a waiver request for Multi-Device Provisioning on March 28, 2026. Reason cited: technical constraint with current HSM infrastructure. Target resolution Q3 2026. Awaiting internal review from Compliance team.</div>
+        <div class="action-meta">
+          <span class="tag tag-orange">Pending Review</span>
+          <span class="tag tag-red">Due Apr 15</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CONTACTS ── -->
+  <div id="tab-contacts" class="tab-panel">
+    <div class="section-title">Partner Contacts</div>
+    <div class="contacts-grid" style="margin-bottom:24px">
+      <div class="contact-card">
+        <div class="avatar" style="background:#0071e3">CM</div>
+        <div>
+          <div class="contact-name">Carlos Mendoza</div>
+          <div class="contact-title">Head of Digital Payments</div>
+          <div class="contact-email">c.mendoza@bancontinental.com.py</div>
+          <span class="contact-tag">Primary DRI</span>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="avatar" style="background:#30d158">SR</div>
+        <div>
+          <div class="contact-name">Sofia Rios</div>
+          <div class="contact-title">Technical Integration Lead</div>
+          <div class="contact-email">s.rios@bancontinental.com.py</div>
+          <span class="contact-tag">Technical</span>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="avatar" style="background:#ff9f0a">JP</div>
+        <div>
+          <div class="contact-name">Jorge Paredes</div>
+          <div class="contact-title">Compliance Officer</div>
+          <div class="contact-email">j.paredes@bancontinental.com.py</div>
+          <span class="contact-tag">Compliance</span>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="avatar" style="background:#bf5af2">AL</div>
+        <div>
+          <div class="contact-name">Ana Lopez</div>
+          <div class="contact-title">Finance &amp; Billing</div>
+          <div class="contact-email">a.lopez@bancontinental.com.py</div>
+          <span class="contact-tag">Billing</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Apple DRI</div>
+    <div class="contacts-grid">
+      <div class="contact-card">
+        <div class="avatar" style="background:#0071e3">MP</div>
+        <div>
+          <div class="contact-name">Marcela Prado</div>
+          <div class="contact-title">Partner Ops — Apple Pay &amp; Wallet</div>
+          <div class="contact-email">mprado@apple.com</div>
+          <span class="contact-tag">DRI</span>
+        </div>
+      </div>
+      <div class="contact-card">
+        <div class="avatar" style="background:#ff453a">CC</div>
+        <div>
+          <div class="contact-name">Chop Choplin</div>
+          <div class="contact-title">Partner Onboarding — PNO</div>
+          <div class="contact-email">cchoplin@apple.com</div>
+          <span class="contact-tag">Onboarding</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NOTES ── -->
+  <div id="tab-notes" class="tab-panel">
+    <div class="section-title">My Notes — Banco Continental Paraguay</div>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:12px">Use this space for call prep, key context, and things to remember. Notes are saved locally in your browser.</p>
+    <textarea class="notes-area" id="partner-notes"
+      placeholder="e.g. Carlos prefers morning calls (PY time). Tap to Add is a priority for them in Q2. Always CC Sofia on technical threads..."
+      oninput="saveNotes()"></textarea>
+    <div class="notes-saved" id="notes-saved">✓ Saved</div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">Call Prep Checklist</div>
+    <div class="action-list">
+      <div class="action-item">
+        <div class="action-icon">☐</div>
+        <div>
+          <div class="action-title">Review open action items</div>
+          <div class="action-desc">IFR waiver status · Q1 invoice · Tap to Add timeline</div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-icon">☐</div>
+        <div>
+          <div class="action-title">Check latest emails</div>
+          <div class="action-desc">Any unread threads or pending responses from partner</div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-icon">☐</div>
+        <div>
+          <div class="action-title">Confirm billing status</div>
+          <div class="action-desc">Q1 invoice sent Apr 2 — confirm receipt with Ana Lopez</div>
+        </div>
+      </div>
+      <div class="action-item">
+        <div class="action-icon">☐</div>
+        <div>
+          <div class="action-title">Share Tap to Add enablement guide</div>
+          <div class="action-desc">Partner needs technical steps to enable feature</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── TABS ──
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab)?.classList.add("active");
+  });
+});
+
+// ── NOTES (localStorage) ──
+const notesKey = "notes_banco_continental_py";
+const ta = document.getElementById("partner-notes");
+const saved = document.getElementById("notes-saved");
+if (ta) { ta.value = localStorage.getItem(notesKey) || ""; }
+let saveTimer;
+function saveNotes() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    localStorage.setItem(notesKey, ta.value);
+    saved.style.display = "block";
+    setTimeout(() => saved.style.display = "none", 2000);
+  }, 600);
+}
+</script>
+</body>
+</html>
